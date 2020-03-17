@@ -1,12 +1,12 @@
 // debugging console
 /* let wappstoConsole = require("wapp-api/console");
-wappstoConsole.start(); */
+wappstoConsole.start();
 
-// wapp api connection
-/* let Wappsto = require("wapp-api"); */
+let Wappsto = require("wapp-api"); */
 const express = require("express");
 const bodyParser = require("body-parser");
 const _ = require("lodash");
+//const helmet = require('helmet');
 const Annotation = require("./models/annotation");
 
 // innitialize
@@ -23,7 +23,7 @@ const now = Date.now();
 function adjustData(from, to) {
   for (let i = 0; i < testseries.length; i++) {
     const series = testseries[i];
-    offset = 0;
+    let offset = 0;
 
     for (let j = 0; j < series.datapoints.length; j++) {
       series.datapoints[j][1] = Math.round(now - offset);
@@ -32,8 +32,10 @@ function adjustData(from, to) {
     }
   }
 }
+adjustData(now - 900000, now - 1000);
 
 app.use(bodyParser.json());
+//app.use(helmet.frameguard({ action: "sameorigin" }));
 
 /* wappsto.get(
   "network",
@@ -64,14 +66,14 @@ function setCORSHeaders(res) {
 
 app.all("/", (req, res) => {
   setCORSHeaders(res);
-  res.status(200).send("Backend is up and running.");
+  res.status(200).send(`<iframe src="http://localhost:3000/d-solo/SZ4e8vXZk/testdash?orgId=1&from=${now - 900000}&to=${now}&panelId=2" width="900" height="400" frameborder="0"></iframe>`);
   res.end();
 });
 
 app.all("/search", (req, res) => {
   setCORSHeaders(res);
   let result = [];
-  _.forEach(testseries, (ts) => {
+  _.forEach(testseries, ts => {
     result.push(ts.target);
   });
 
@@ -88,7 +90,7 @@ app.all("/annotations", function(req, res) {
   var annotations = [
     {
       annotation: anno,
-      time: now - 240000,
+      time: now - 60000,
       title: "Shit crashed 3: The fast and the furious",
       tags: "crash",
       text: "Crash report 3, long text that just keeps on going."
@@ -102,7 +104,7 @@ app.all("/annotations", function(req, res) {
     },
     {
       annotation: anno,
-      time: now - 60000,
+      time: now - 240000,
       title: "Shit crashed",
       tags: "crash",
       text: "Crash report 1"
@@ -121,16 +123,14 @@ app.all("/query", (req, res) => {
 
   let tsResult = [];
 
-  // sets valid timestamps for dummy json data
+  /* // sets valid timestamps for dummy json data
   adjustData(
     Date.parse(req.body.range["from"]),
     Date.parse(req.body.range["to"])
-  );
+  ); */
 
   _.each(req.body.targets, target => {
     let k = _.filter(testseries, t => {
-      console.log("t.target: " + t.target + " target.target: " + target.target + "\n");
-      console.log(t.target === target.target);
       return t.target === target.target;
     });
     _.each(k, kk => {
